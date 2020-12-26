@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Primeiro jst</title>
+    <title>Segundo jst</title>
     <style>
         body{
             background-color: rgb(12, 68, 68);
@@ -11,13 +11,13 @@
             font: normal 20pt Arial;        
         }
         h1{
-            color: blue;
+            color: blue; 
         }
     </style>
 </head>
 <body>
     <h1>hallo word!</h1>  <!-- comentario html-->
-    <p>fim da maldição</p>
+    <p>teste 2</p>
     <script>
         
         
@@ -31,11 +31,15 @@
         var x = Number(prompt('digite o primeiro número'))
         var y = Number(prompt('digite o segundo número'))
         var s = x + y
-        window.alert('A soma dos valores é ' + s)
+        window.alert(`A soma entre ${x} e ${y}  é igual a ${s}`)
+        //window.alert('A soma entre ' + x + ' e ' + y + ' é igual a' + s )
         //(number + number) para adição
         //(string + string) pra concatenação
 
-        //definir como string String(s)
+        //definir como string String(s) ou s.toString()
+
+
+       
     </script>    
 </body>
 </html>

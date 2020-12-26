@@ -1,0 +1,21 @@
+erofucntios
+call backs
+funções anonimas
+as iifes <-
+
+objetos
+modularização
+regEx          //expressoes regulars
+json
+
+
+ajax          //carregar pags auto
+
+nodeJS
+
+
+valores heterogenios
+criar objetos
+let amigo = {nome:'jose', sexo: 'M', peso: 85.4, engordar(p){}}
+
+jose | M | 85.4 | [function]
