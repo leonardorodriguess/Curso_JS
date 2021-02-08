@@ -18,3 +18,16 @@ function fatorial(n){
     }
 }
 
+function multmatiz(m1, m2){
+    let mr 
+    for (let i = 0;   i < 4; i++){
+        for(let j = 0; j < 4; j++){
+            for(let z = 0; z < 4; z++)
+                mr[i][j] += (m1[i][z] * m2[j][z])
+        }        
+    }
+    return mr
+}
+
+
+

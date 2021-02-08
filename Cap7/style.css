@@ -1,0 +1,8 @@
+canvas#myCanvas{   
+    width: 93vmin;
+    height: center;
+    display: block;
+    float: none;
+    margin: 0px auto 10px auto;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}

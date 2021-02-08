@@ -1,5 +1,5 @@
 var agora = new Date()
-var diaSem = agora.getDay()
+var diaSem = agora.getMilliseconds
 /*
     0 = Domingo
     1 = Segunda 
@@ -7,11 +7,11 @@ var diaSem = agora.getDay()
     3 = Quarta
     4 = Quinta 
     5 = Sexta 
-    6 = Sabado
+    6 = Sabadoa
 
 */
 
-//console.log(diaSem)
+console.log(diaSem)
 
 switch(diaSem){
     case 0 :

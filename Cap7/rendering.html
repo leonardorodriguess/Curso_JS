@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+    <link rel="stylesheet" href="style.css">
+<html>
+    <body>
+        <canvas id="myCanvas" width="600" height="600"  style="border:1px solid #d3d3d3;">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+
+        <script src="cg.js"></script>
+
+        <script>
+            var agora = new Date()
+            var seg = agora.getSeconds();
+            var mil = agora.getMilliseconds();
+
+            seg = ((seg*1000 + mil)/1000)*6
+            
+            let c = document.getElementById("myCanvas");
+            let ctx = c.getContext("2d"); 
+            //ctx.fillRect(0, 0, 600, 600)
+            render(ctx, 0)
+            
+            while(true){
+                render(ctx, seg) 
+
+                ctx.save();
+                location.reload()
+                break
+            }
+
+             /*function sleep(milliseconds) {
+                var start = new Date().getTime();
+                for (var i = 0; i < 1e7; i++) {
+                    if ((new Date().getTime() - start) > milliseconds){
+                    break;
+                    }
+                }
+            }*/
+
+            //for(cont = 0; cont <= 360; cont++){
+                
+                
+                //ctx.save();
+                //window.setInterval(render(ctx, cont), 10000)
+                //ctx.drawImage()
+                
+                //ctx.drawImage()
+                
+                //ctx.drawImage(render(ctx, cont), -12, -12)
+                //ctx.restore();
+                //ctx.beginPath();
+                
+                //ctx.stroke();
+                //janela.requestAnimationFrame(render(ctx, cont));
+                
+                //setTimeout(nada(), 1);
+
+                //while(seg < ant)
+                  //  nada()
+                //sleep(1000)
+                
+
+
+                //window.requestAnimationFrame( nada, 3000);
+                //ctx.cleatReact()
+                //ctx.salve()
+                //ctx.clear(true)
+                //ctx.setTransform(1, 0, 0, 1, 0)
+                
+                
+                //
+                //window.requestAnimationFrame()
+                //setInterval(render(ctx, cont),atraso)
+                
+                //ctx.restore()
+                
+                //pause()
+                
+                
+            //}        
+
+                
+        </script>
+    </body>
+</html>
