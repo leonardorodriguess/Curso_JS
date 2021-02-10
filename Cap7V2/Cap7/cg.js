@@ -201,14 +201,14 @@ class Line3D {
 }
 
 class Quad {
-    constructor(a, b, c, d, r=1, g=0, cb=0){
-        this.lines = [new Line3D(a, b, r, g, cb), 
-                      new Line3D(b, c, r, g, cb), 
-                      new Line3D(c, d, r, g, cb),
-                      new Line3D(d, a, r, g, cb)]
-        this.r = r;
-        this.b = b;
-        this.g = g;
+    constructor(a, b, c, d, R=1, G=0, B=0){
+        this.lines = [new Line3D(a, b, R, G, B), 
+                      new Line3D(b, c, R, G, B), 
+                      new Line3D(c, d, R, G, B),
+                      new Line3D(d, a, R, G, B)]
+        this.R = R;
+        this.G = G;
+        this.B = B;
         this.points = [a, b, c, d];
     }
 }
@@ -319,12 +319,12 @@ class Cube {
         let v7 = new Point3D(origin.x + size * 0.5, origin.y + size * 0.5, origin.z - size * 0.5);
         let v8 = new Point3D(origin.x - size * 0.5, origin.y + size * 0.5, origin.z - size * 0.5);
     
-        this.faces = [new Quad(v1, v2, v3, v4, 0, 255, 127), //front 
-                      new Quad(v5, v8, v7, v6, 255, 255, 255), //back
-                      new Quad(v1, v5, v6, v2, 255, 100, 0), //bottom
-                      new Quad(v4, v3, v7, v8, 190, 190, 190), //top
-                      new Quad(v1, v4, v8, v5, 0, 100, 255), //left
-                      new Quad(v2, v6, v7, v3, 255, 0, 0), //right
+        this.faces = [new Quad(v1, v2, v3, v4, 0, 255, 0), //front 
+                      new Quad(v5, v8, v7, v6, 0, 0, 0), //back
+                      new Quad(v1, v5, v6, v2, 255, 255, 0), //bottom
+                      new Quad(v4, v3, v7, v8, 255, 0, 0), //top
+                      new Quad(v1, v4, v8, v5, 0, 0, 255), //left
+                      new Quad(v2, v6, v7, v3, 0, 255, 255), //right
                     ]
         this.lines = []
         for (let i = 0; i < this.faces.length; i++) {
@@ -333,19 +333,6 @@ class Cube {
             this.lines.push(this.faces[i].lines[2]);
             this.lines.push(this.faces[i].lines[3]);
         }
-
-        /*DrawLine(context, v1, v3, v2, v4, line.x, line.g, line.b, 255, 0,
-            nx-1, 0, ny-1, nx, ny, a.z, b.z
-        /*let bx = b.x 
-            let ay = a.y
-            let by = b.y
-            for(let ax = a.x; ax < a.y; ax += 0.5){
-                bx += 0.5
-                ay += 0.5
-                by += 0.5
-                DrawLine(context, bx, a.y, bx, b.y, line.x, line.g, line.b, 255, 0,
-                    nx-1, 0, ny-1, nx, ny, a.z, b.z)
-            }*/        
     }
 }
 
@@ -363,7 +350,7 @@ class ImplicitFunction {
 }
 
 //implementa a visualização em wireframe
-function render(context, seg, visibilityTest=true) {
+function render(context, visibilityTest=true) {
     let nx = 600; //eh a quantidade de pixels na horizontal.
     let ny = 600; //eh a quantidade de pixels na vertical.
     let n = -100; //a posicao do plano mais proximo da camera.
@@ -374,16 +361,14 @@ function render(context, seg, visibilityTest=true) {
     let t = 100; //valor maximo de y
     let camx = 10, camy = 10, camz = 10; //posicao da camera em coordenadas do mundo
 
-    context.save()
-    context.clearRect(0,0, 600,600)
-
-    let camera = new Camera(new Point3D(seg*Math.sin(seg*Math.PI/180),seg*Math.cos(seg*Math.PI/180), 10), new Point3D(0, 0, 1), new Vector3D(1, 0, 1))
+    let camera = new Camera(new Point3D(10, 10, 10), new Point3D(0, 0, 0), new Vector3D(0, 1, 0))
     let u = camera.u
     let v = camera.v
     let w = camera.w
     let eye = camera.eye
     
-    let mvp =  new Matrix44(nx/2.0, 0, 0, (nx-1)/2.0,       0, ny/2.0, 0, (ny-1)/2.0,    0, 0, 1, 0,    0, 0, 0, 1);
+    //let mvp =  new Matrix44(nx/2.0, 0, 0, (nx-1)/2.0,       0, ny/2.0, 0, (ny-1)/2.0,    0, 0, 1, 0,    0, 0, 0, 1);
+    let mvp =  new Matrix44(nx/2.0, 0, 0, (nx-1)/2.0,       0, -ny/2.0, 0, (ny-1)/2.0,    0, 0, 1, 0,    0, 0, 0, 1);
     let mortho = new Matrix44(2/(r-l), 0, 0, -(r+l)/(r-l),  0, 2/(t-b), 0, -(t+b)/(t-b),  0, 0, 2/(n-f), -(n+f)/(n-f),   0, 0, 0, 1.0);
     let camrot = new Matrix44(u.x, u.y, u.z, 0,   v.x, v.y, v.z, 0,   w.x, w.y, w.z, 0,   0, 0, 0, 1)
     let campos = new Matrix44(1, 0, 0, -eye.x,   0, 1, 0, -eye.y,   0, 0,  1, -eye.z,   0, 0, 0, 1)
@@ -394,7 +379,7 @@ function render(context, seg, visibilityTest=true) {
     console.log(mview.toString());
     
 
-    let objects = [new Cube(new Point3D(0, 0, 10), 50)];
+    let objects = [new Cube(new Point3D(0, 0, 10), 20), new Sphere(new Point3D(0, 0, 70), 30, 16, 8)];
 
     let i = 0
     while (i < objects.length){
@@ -418,6 +403,12 @@ function render(context, seg, visibilityTest=true) {
                 color = new Color(Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), 255);
                 RasterTriangle(context, a, b, c, color, color, color);
             }
+            //console.log("(" + a.x + ", " + a.y + ", " + a.z + ") --- (" + b.x + ", " + b.y + ", " + b.z + ")");
+            //DrawLine(context, a.x, a.y, b.x, b.y, line.r, line.g, line.b, 255, 0,
+            //         nx-1, 0, ny-1, nx, ny)
+            //RasterLine(context, a.x, a.y, b.x, b.y);
+            //RasterLine(context, b.x, b.y, c.x, c.y);
+            //RasterLine(context, c.x, c.y, a.x, a.y);
         }
         i++;
     }
@@ -446,6 +437,7 @@ function YToWrld(Y, MINYW=-100, MAXYW=100, MINYS=0, MAXYS=150)
 	let YN = (Y-MINYS)/(MAXYS - MINYS);
     return Math.trunc(MAXYW - YN * (MAXYW - MINYW));
 }
+
 
 function RasterLine(context, x0, y0, x1, y1, r, g, b, a=255){
     let m = (y1-y0)/(x1-x0);
@@ -582,47 +574,17 @@ function RasterTriangle(context, p0, p1, p2, c1, c2, c3) {
 
 }
 
-
-function DrawLine(context, x1w, y1w,  x2w, y2w, r=200, g=200, b=200, a=255, xmin=-1, xmax=1, ymin=-1, ymax=1, nx = 600, ny = 600, z1w = 0, z2w = 0) {
+function DrawLine(context, x1w, y1w,  x2w, y2w, r=0, g=0, b=0, a=255, xmin=-1, xmax=1, ymin=-1, ymax=1, nx = 600, ny = 800) {
     let bkp = context.strokeStyle;
-    //let bkp = context.fillStyle;
     context.strokeStyle = "rgba(" + r + "," + g + "," + b + "," + (a/255.0) + ")";
-    context.fillStyle = "rgba(" + r + "," + g + "," + b + "," + (a/255.0) + ")";
-    context.beginPath(); 
-    // Staring point (10,45)
-     context.moveTo(XToScr(x1w, xmin, xmax, 0, nx, 0, ny), 
-                    YToScr(y1w, ymin, ymax, 0, nx, 0, ny));
-    // End point (180,47)
-    context.lineTo(XToScr(x2w, xmin, xmax, 0, nx, 0, ny), 
-                   YToScr(y2w, ymin, ymax, 0, nx, 0, ny));
-    // Make the line visible
-    
-    context.stroke();
-    context.closePath();
-    
-    
-    context.fillStyle =bkp;
-    context.strokeStyle = bkp;
-}
-
-function Drawface(context, x1w, y1w,  x2w, y2w, r=200, g=200, b=200, a=255, xmin=-1, xmax=1, ymin=-1, ymax=1, nx = 600, ny = 600, z1w = 0, z2w = 0) {
-    //let bkp = context.strokeStyle;
-    let bkp = context.fillStyle;
-    context.strokeStyle = "rgba(" + r + "," + g + "," + b + "," + (a/255.0) + ")";
-    context.fillStyle = "rgba(" + r + "," + g + "," + b + "," + (a/255.0) + ")";
     context.beginPath(); 
     // Staring point (10,45)
      context.moveTo(XToScr(x1w, xmin, xmax, 0, nx, 0, ny), YToScr(y1w, ymin, ymax, 0, nx, 0, ny));
     // End point (180,47)
     context.lineTo(XToScr(x2w, xmin, xmax, 0, nx, 0, ny), YToScr(y2w, ymin, ymax, 0, nx, 0, ny));
     // Make the line visible
-    
-    
-    context.closePath();
-    context.fill();
-    //context.stroke()
-    context.fillStyle =bkp;
-    //context.strokeStyle = bkp;
+    context.stroke();
+    context.strokeStyle = bkp;
 }
 
 function DrawMarker(targetContext, xw, yw, r=0, g=0, b=0, a=255, size = 10)
