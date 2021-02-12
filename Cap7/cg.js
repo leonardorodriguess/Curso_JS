@@ -207,15 +207,20 @@ class Quad {
                       new Line3D(c, d, r, g, cb),
                       new Line3D(d, a, r, g, cb)]
         this.r = r;
-        this.b = b;
+        this.cb = cb;
         this.g = g;
         this.points = [a, b, c, d];
     }
 }
 
 class Triangle {
-    constructor(a, b, c, r=0, g=0, cb=0) {
-        this.lines = [new Line3D(a, b, r, g, cb), new Line3D(b, c, r, g, cb), new Line3D(c, a, r, g, cb)];
+    constructor(a, b, c, r=1, g=0, cb=0) {
+        this.lines = [new Line3D(a, b, r, g, cb), 
+                      new Line3D(b, c, r, g, cb), 
+                      new Line3D(c, a, r, g, cb)];
+        this.r = r;
+        this.g = g;
+        this.cb = cb;
         this.points = [a, b, c];
     }
 }
@@ -285,8 +290,8 @@ class Sphere {
     }
 }
 
-function quadToTriangle(a, b, c, d) {
-    return [new Triangle(a, b, c), new  Triangle(a, c, d)];
+function quadToTriangle(a, b, c, d, r, g, cb) {
+    return [new Triangle(a, b, c, r, g, cb), new  Triangle(a, c, d, r, g, cb)];
 }
 
 function meshToTriangles(faces){
@@ -296,7 +301,7 @@ function meshToTriangles(faces){
         if (face.points.length == 3) {
             r.push(face);
         } else if (face.points.length == 4) {
-            ts = quadToTriangle(face.points[0], face.points[1], face.points[2], face.points[3]);
+            ts = quadToTriangle(face.points[0], face.points[1], face.points[2], face.points[3], face.r, face.g, face.cb);
             r.push(ts[0]);
             r.push(ts[1]);
         }
@@ -319,12 +324,12 @@ class Cube {
         let v7 = new Point3D(origin.x + size * 0.5, origin.y + size * 0.5, origin.z - size * 0.5);
         let v8 = new Point3D(origin.x - size * 0.5, origin.y + size * 0.5, origin.z - size * 0.5);
     
-        this.faces = [new Quad(v1, v2, v3, v4, 0, 255, 127), //front 
+        this.faces = [new Quad(v1, v2, v3, v4, 255, 255, 255), //front 
                       new Quad(v5, v8, v7, v6, 255, 255, 255), //back
                       new Quad(v1, v5, v6, v2, 255, 100, 0), //bottom
-                      new Quad(v4, v3, v7, v8, 190, 190, 190), //top
-                      new Quad(v1, v4, v8, v5, 0, 100, 255), //left
-                      new Quad(v2, v6, v7, v3, 255, 0, 0), //right
+                      new Quad(v4, v3, v7, v8, 255, 0, 0), //top
+                      new Quad(v1, v4, v8, v5, 0, 255, 0), //left
+                      new Quad(v2, v6, v7, v3, 255, 255, 0), //right
                     ]
         this.lines = []
         for (let i = 0; i < this.faces.length; i++) {
@@ -398,9 +403,20 @@ function render(context, seg, visibilityTest=true) {
 
     let i = 0
     while (i < objects.length){
+            /*line = obj.lines[j]
+            let a = mview.transform(line.begin);
+            //a = a.ToCart();
+            let b = mview.transform(line.end);
+            //b = b.ToCart();
+            //console.log("(" + a.x + ", " + a.y + ", " + a.z + ") --- (" + b.x + ", " + b.y + ", " + b.z + ")");
+            DrawLine(context, a.x, a.y, b.x, b.y, line.r, line.g, line.b, 255, 0,
+                    nx-1, 0, ny-1, nx, ny)*/
+
+
         let obj = objects[i]
         faces = meshToTriangles(obj.faces)
         for (let j = 0; j < faces.length; j++) {
+            //line = obj.line[j]
             face = faces[j]
             let a = mview.transform(face.points[0]);
             //a = a.ToCart();
@@ -415,7 +431,7 @@ function render(context, seg, visibilityTest=true) {
             let e = camera.w.scale(-1);
             
             if (!visibilityTest || e.dot(n) > 0) {
-                color = new Color(Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), 255);
+                color = new Color((face.r), Math.floor(face.g), Math.floor(face.cb), 255);
                 RasterTriangle(context, a, b, c, color, color, color);
             }
         }
@@ -603,26 +619,6 @@ function DrawLine(context, x1w, y1w,  x2w, y2w, r=200, g=200, b=200, a=255, xmin
     
     context.fillStyle =bkp;
     context.strokeStyle = bkp;
-}
-
-function Drawface(context, x1w, y1w,  x2w, y2w, r=200, g=200, b=200, a=255, xmin=-1, xmax=1, ymin=-1, ymax=1, nx = 600, ny = 600, z1w = 0, z2w = 0) {
-    //let bkp = context.strokeStyle;
-    let bkp = context.fillStyle;
-    context.strokeStyle = "rgba(" + r + "," + g + "," + b + "," + (a/255.0) + ")";
-    context.fillStyle = "rgba(" + r + "," + g + "," + b + "," + (a/255.0) + ")";
-    context.beginPath(); 
-    // Staring point (10,45)
-     context.moveTo(XToScr(x1w, xmin, xmax, 0, nx, 0, ny), YToScr(y1w, ymin, ymax, 0, nx, 0, ny));
-    // End point (180,47)
-    context.lineTo(XToScr(x2w, xmin, xmax, 0, nx, 0, ny), YToScr(y2w, ymin, ymax, 0, nx, 0, ny));
-    // Make the line visible
-    
-    
-    context.closePath();
-    context.fill();
-    //context.stroke()
-    context.fillStyle =bkp;
-    //context.strokeStyle = bkp;
 }
 
 function DrawMarker(targetContext, xw, yw, r=0, g=0, b=0, a=255, size = 10)
