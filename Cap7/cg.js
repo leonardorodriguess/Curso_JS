@@ -80,7 +80,7 @@ class Vector3D {
 class Camera {
     constructor(eye, center, up) {
         this.eye = eye;
-        this.w = center.Sub(eye).normalize();
+        this.w = eye.Sub(center).normalize();
         this.u = up.cross(this.w).normalize();
         this.v = this.w.cross(this.u).normalize();
     }
@@ -201,26 +201,28 @@ class Line3D {
 }
 
 class Quad {
-    constructor(a, b, c, d, r=1, g=0, cb=0){
-        this.lines = [new Line3D(a, b, r, g, cb), 
-                      new Line3D(b, c, r, g, cb), 
-                      new Line3D(c, d, r, g, cb),
-                      new Line3D(d, a, r, g, cb)]
-        this.r = r;
-        this.cb = cb;
-        this.g = g;
+    constructor(a, b, c, d, R=1, G=0, B=0, A=255){
+        this.lines = [new Line3D(a, b, R, G, B), 
+                      new Line3D(b, c, R, G, B), 
+                      new Line3D(c, d, R, G, B),
+                      new Line3D(d, a, R, G, B)]
+        this.R = R;
+        this.B = B;
+        this.G = G;
+        this.A = A;
         this.points = [a, b, c, d];
     }
 }
 
 class Triangle {
-    constructor(a, b, c, r=1, g=0, cb=0) {
-        this.lines = [new Line3D(a, b, r, g, cb), 
-                      new Line3D(b, c, r, g, cb), 
-                      new Line3D(c, a, r, g, cb)];
-        this.r = r;
-        this.g = g;
-        this.cb = cb;
+    constructor(a, b, c, R=1, G=0, B=0, A=255) {
+        this.lines = [new Line3D(a, b, R, G, B), 
+                      new Line3D(b, c, R, G, B), 
+                      new Line3D(c, a, R, G, B)];
+        this.R = R;
+        this.G = G;
+        this.B = B;
+        this.A = A;
         this.points = [a, b, c];
     }
 }
@@ -290,8 +292,8 @@ class Sphere {
     }
 }
 
-function quadToTriangle(a, b, c, d, r, g, cb) {
-    return [new Triangle(a, b, c, r, g, cb), new  Triangle(a, c, d, r, g, cb)];
+function quadToTriangle(a, b, c, d, R, G, B, A = 255) {
+    return [new Triangle(a, b, c, R, G, B, A), new  Triangle(a, c, d, R, G, B, A)];
 }
 
 function meshToTriangles(faces){
@@ -301,7 +303,7 @@ function meshToTriangles(faces){
         if (face.points.length == 3) {
             r.push(face);
         } else if (face.points.length == 4) {
-            ts = quadToTriangle(face.points[0], face.points[1], face.points[2], face.points[3], face.r, face.g, face.cb);
+            ts = quadToTriangle(face.points[0], face.points[1], face.points[2], face.points[3], face.R, face.G, face.B, face.A);
             r.push(ts[0]);
             r.push(ts[1]);
         }
@@ -324,9 +326,9 @@ class Cube {
         let v7 = new Point3D(origin.x + size * 0.5, origin.y + size * 0.5, origin.z - size * 0.5);
         let v8 = new Point3D(origin.x - size * 0.5, origin.y + size * 0.5, origin.z - size * 0.5);
     
-        this.faces = [new Quad(v1, v2, v3, v4, 255, 255, 255), //front 
-                      new Quad(v5, v8, v7, v6, 255, 255, 255), //back
-                      new Quad(v1, v5, v6, v2, 255, 100, 0), //bottom
+        this.faces = [new Quad(v1, v2, v3, v4, 255, 50, 255), //front 
+                      new Quad(v5, v8, v7, v6, 255, 100, 0), //back
+                      new Quad(v1, v5, v6, v2, 0, 0, 0), //bottom
                       new Quad(v4, v3, v7, v8, 255, 0, 0), //top
                       new Quad(v1, v4, v8, v5, 0, 255, 0), //left
                       new Quad(v2, v6, v7, v3, 255, 255, 0), //right
@@ -382,13 +384,18 @@ function render(context, seg, visibilityTest=true) {
     context.save()
     context.clearRect(0,0, 600,600)
 
-    let camera = new Camera(new Point3D(seg*Math.sin(seg*Math.PI/180),seg*Math.cos(seg*Math.PI/180), 10), new Point3D(0, 0, 1), new Vector3D(1, 0, 1))
+    let camera = new Camera(new Point3D
+                    (seg*Math.sin(seg*Math.PI/180),
+                    90,
+                    seg*Math.cos(seg*Math.PI/180)),
+                    new Point3D(0, 0, 0), 
+                    new Vector3D(0, 1, 0))
     let u = camera.u
     let v = camera.v
     let w = camera.w
     let eye = camera.eye
     
-    let mvp =  new Matrix44(nx/2.0, 0, 0, (nx-1)/2.0,       0, ny/2.0, 0, (ny-1)/2.0,    0, 0, 1, 0,    0, 0, 0, 1);
+    let mvp =  new Matrix44(nx/2.0, 0, 0, (nx-1)/2.0,       0, -ny/2.0, 0, (ny-1)/2.0,    0, 0, 1, 0,    0, 0, 0, 1);
     let mortho = new Matrix44(2/(r-l), 0, 0, -(r+l)/(r-l),  0, 2/(t-b), 0, -(t+b)/(t-b),  0, 0, 2/(n-f), -(n+f)/(n-f),   0, 0, 0, 1.0);
     let camrot = new Matrix44(u.x, u.y, u.z, 0,   v.x, v.y, v.z, 0,   w.x, w.y, w.z, 0,   0, 0, 0, 1)
     let campos = new Matrix44(1, 0, 0, -eye.x,   0, 1, 0, -eye.y,   0, 0,  1, -eye.z,   0, 0, 0, 1)
@@ -398,41 +405,49 @@ function render(context, seg, visibilityTest=true) {
     
     console.log(mview.toString());
     
-
-    let objects = [new Cube(new Point3D(0, 0, 10), 50)];
+    let objeto = new Cube(new Point3D(-100, 0, 0), 20)
+    let objects = [new Cube(new Point3D(0, 0, 0), 50),objeto];
 
     let i = 0
     while (i < objects.length){
-            /*line = obj.lines[j]
-            let a = mview.transform(line.begin);
-            //a = a.ToCart();
-            let b = mview.transform(line.end);
-            //b = b.ToCart();
-            //console.log("(" + a.x + ", " + a.y + ", " + a.z + ") --- (" + b.x + ", " + b.y + ", " + b.z + ")");
-            DrawLine(context, a.x, a.y, b.x, b.y, line.r, line.g, line.b, 255, 0,
-                    nx-1, 0, ny-1, nx, ny)*/
-
 
         let obj = objects[i]
         faces = meshToTriangles(obj.faces)
         for (let j = 0; j < faces.length; j++) {
             //line = obj.line[j]
             face = faces[j]
-            let a = mview.transform(face.points[0]);
-            //a = a.ToCart();
-            let b = mview.transform(face.points[1]);
-            //b = b.ToCart();
-            let c = mview.transform(face.points[2]);
-            //c = c.ToCart();
-
+            a = face.points[0];
+            b = face.points[1];
+            c = face.points[2];
+            
             let u = b.Sub(a);
             let v = c.Sub(a);
             let n = u.cross(v);
-            let e = camera.w.scale(-1);
-            
+            let e = camera.w;
+
+
             if (!visibilityTest || e.dot(n) > 0) {
-                color = new Color((face.r), Math.floor(face.g), Math.floor(face.cb), 255);
+                a = mview.transform(a);
+                a = a.ToCart();
+                b = mview.transform(b);
+                b = b.ToCart();
+                c = mview.transform(c);
+                c = c.ToCart();
+                
+                if(i == 0)
+                    color = new Color(face.R, face.G, face.B, face.A);
+                else{
+                    color = new Color (face.G, face.B, face.R, 255)
+                }
+
                 RasterTriangle(context, a, b, c, color, color, color);
+
+                /*DrawLine(context, a.x, a.y, b.x, b.y, face.R, face.G, face.B, 255, 0,
+                    nx-1, 0, ny-1, nx, ny)
+                DrawLine(context, a.x, a.y, c.x, c.y, face.R, face.G, face.B, 255, 0,
+                    nx-1, 0, ny-1, nx, ny)
+                DrawLine(context, c.x, c.y, b.x, b.y, face.R, face.G, face.B, 255, 0,
+                    nx-1, 0, ny-1, nx, ny)*/
             }
         }
         i++;
@@ -577,15 +592,15 @@ function RasterTriangle(context, p0, p1, p2, c1, c2, c3) {
     fbeta = f20.eval(p1.x, p1.y);
     fgamma = f01.eval(p2.x, p2.y);
 
-    for (let y = ymin; y < ymax; y++) {
-        for (let x = xmin; x < xmax; x++) {
+    for (let y = Math.floor(ymin); y <= Math.ceil(ymax); y++) {
+        for (let x = Math.floor(xmin); x <= Math.ceil(xmax); x++) {
             alfa = f12.eval(x, y)/falfa;
             beta = f20.eval(x, y)/fbeta;
             gamma = f01.eval(x, y)/fgamma;
             if (alfa >= 0 && beta >= 0 && gamma >= 0) {
-                if ( (alfa > 0 || falfa * f12.eval(-1, -1) > 0) &&
-                     (beta > 0 || fbeta * f20.eval(-1, -1) > 0) &&
-                     (gamma > 0 || fgamma*f01.eval(-1, -1) > 0) ) {
+                if ( (alfa >= 0 || falfa * f12.eval(-1, -1) > 0) &&
+                     (beta >= 0 || fbeta * f20.eval(-1, -1) > 0) &&
+                     (gamma >= 0 || fgamma*f01.eval(-1, -1) > 0) ) {
                          r = Math.round(alfa * c1.R + beta * c2.R + gamma * c3.R);
                          g = Math.round(alfa * c1.G + beta * c2.G + gamma * c3.G);
                          b = Math.round(alfa * c1.B + beta * c2.B + gamma * c3.B);
@@ -599,11 +614,10 @@ function RasterTriangle(context, p0, p1, p2, c1, c2, c3) {
 }
 
 
-function DrawLine(context, x1w, y1w,  x2w, y2w, r=200, g=200, b=200, a=255, xmin=-1, xmax=1, ymin=-1, ymax=1, nx = 600, ny = 600, z1w = 0, z2w = 0) {
+function DrawLine(context, x1w, y1w,  x2w, y2w, r=200, g=200, b=200, a=255, xmin=-1, xmax=1, ymin=-1, ymax=1, nx = 600, ny = 600) {
     let bkp = context.strokeStyle;
     //let bkp = context.fillStyle;
     context.strokeStyle = "rgba(" + r + "," + g + "," + b + "," + (a/255.0) + ")";
-    context.fillStyle = "rgba(" + r + "," + g + "," + b + "," + (a/255.0) + ")";
     context.beginPath(); 
     // Staring point (10,45)
      context.moveTo(XToScr(x1w, xmin, xmax, 0, nx, 0, ny), 
@@ -617,7 +631,7 @@ function DrawLine(context, x1w, y1w,  x2w, y2w, r=200, g=200, b=200, a=255, xmin
     context.closePath();
     
     
-    context.fillStyle =bkp;
+
     context.strokeStyle = bkp;
 }
 
