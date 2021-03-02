@@ -12,21 +12,30 @@
             var agora = new Date()
             var seg = agora.getSeconds();
             var mil = agora.getMilliseconds();
+            //var mil = 0;
 
             seg = ((seg*1000 + mil)/1000)*6*2
             
             let c = document.getElementById("myCanvas");
             let ctx = c.getContext("2d"); 
             //ctx.fillRect(0, 0, 600, 600)
-            //render(ctx, 0)
-            
-            while(true){
+            //render(ctx, 66)
+            //try{
+                while(true){
                 render(ctx,seg) 
 
                 ctx.save();
                 location.reload()
                 break
-            }
+                }
+            //}catch{
+                console.log(seg);
+                console.log(seg*Math.sin(seg*Math.PI/180));
+                console.log(seg*Math.cos(seg*Math.PI/180));
+
+            //}
+            
+            
 
              /*function sleep(milliseconds) {
                 var start = new Date().getTime();

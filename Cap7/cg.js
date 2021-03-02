@@ -229,7 +229,7 @@ class Triangle {
 
 
 class Sphere {
-    constructor(pos, radio, segments, rings){
+    constructor(pos, radio, segments, rings, R=255, G=0, B=0, A=255){
         this.radio = radio;
         this.position = pos;
         this.faces = [];
@@ -258,7 +258,7 @@ class Sphere {
                     if (b >= ringN.length) {
                         b = 0;
                     }
-                    this.faces.push(new Triangle(ring0[0], ringN[a], ringN[b]));
+                    this.faces.push(new Triangle(ring0[0], ringN[a], ringN[b], R, G, B, A));
                 }
             } else if (ring0.length > 1) {
                 for (let j = 0; j < ringN.length; j++) {
@@ -267,7 +267,7 @@ class Sphere {
                     if (b >= ringN.length) {
                         b = 0;
                     }
-                    this.faces.push(new Quad(ring0[a], ringN[a], ringN[b], ring0[b]));
+                    this.faces.push(new Quad(ring0[a], ringN[a], ringN[b], ring0[b], R, G, B, A));
                 }
             }
             ring0 = ringN;
@@ -280,7 +280,7 @@ class Sphere {
             if (b >= ringN.length) {
                 b = 0;
             }
-            this.faces.push(new Triangle(ring0[0], ringN[a], ringN[b]));
+            this.faces.push(new Triangle(ring0[0], ringN[a], ringN[b], R, G, B, A));
         }
 
         this.lines = []
@@ -356,6 +356,27 @@ class Cube {
     }
 }
 
+class Color {
+    constructor(R, G, B, A) {
+        this.R = R;
+        this.G = G;
+        this.B = B;
+        this.A = A;
+    }
+
+    scale(k){
+        return new Color(this.R*k, this.G*k, this.B*k, this.A);
+    }
+
+    Add(C) {
+        return new Color(this.R + C.R, this.G + C.G, this.B + C.B, this.A);
+    }
+
+    Mult(C){
+        return new Color(this.R * C.R, this.G * C.G, this.B * C.B, this.A);    
+    }
+}
+
 class ImplicitFunction {
     constructor(p0, p1) {
         this.A = p0.y - p1.y;
@@ -367,6 +388,17 @@ class ImplicitFunction {
     eval(x, y) {
         return this.A * x + this.B * y + this.C - this.D;
     }
+}
+
+function CreateMatrix(lines=3, columns=3, value) {
+    let m = new Array(columns);
+    for (let i = 0; i < columns; i++) {
+        m[i] = new Array(lines);
+        for (let j = 0; j < lines; j++) {
+            m[i][j] = value;
+        }
+    }
+    return m;
 }
 
 //implementa a visualização em wireframe
@@ -386,7 +418,7 @@ function render(context, seg, visibilityTest=true) {
 
     let camera = new Camera(new Point3D
                     (seg*Math.sin(seg*Math.PI/180),
-                    90,
+                    0,
                     seg*Math.cos(seg*Math.PI/180)),
                     new Point3D(0, 0, 0), 
                     new Vector3D(0, 1, 0))
@@ -405,10 +437,15 @@ function render(context, seg, visibilityTest=true) {
     
     console.log(mview.toString());
     
-    let objeto = new Cube(new Point3D(-100, 0, 0), 20)
-    let objects = [new Cube(new Point3D(0, 0, 0), 50),objeto];
+    let cubo = new Cube(new Point3D(-80, 0, 0), 20)
+    let esfera = new Sphere(new Point3D(70, 0, 0), 20,92,48,200,200,255)
+    let objects = [new Cube(new Point3D(0, 0, 0), 50), esfera, cubo];
 
     let i = 0
+
+    let colorBuffer = CreateMatrix(600, 600, new Color(0, 0, 0, 255));
+    let depthBuffer = CreateMatrix(600, 600, -1000000.0);
+    
     while (i < objects.length){
 
         let obj = objects[i]
@@ -437,10 +474,12 @@ function render(context, seg, visibilityTest=true) {
                 if(i == 0)
                     color = new Color(face.R, face.G, face.B, face.A);
                 else{
-                    color = new Color (face.G, face.B, face.R, 255)
+                    color = new Color (face.G, face.B, face.R, 50)
                 }
 
-                RasterTriangle(context, a, b, c, color, color, color);
+                //RasterTrianglebf(colorBuffer, depthBuffer, a, b, c, color, color, color);
+
+                //RasterTriangle(context, a, b, c, color, color, color);
 
                 /*DrawLine(context, a.x, a.y, b.x, b.y, face.R, face.G, face.B, 255, 0,
                     nx-1, 0, ny-1, nx, ny)
@@ -452,6 +491,7 @@ function render(context, seg, visibilityTest=true) {
         }
         i++;
     }
+    //DrawMatrix(context, colorBuffer);
 }
 
 
@@ -545,14 +585,6 @@ function RasterLine(context, x0, y0, x1, y1, r, g, b, a=255){
     }
 }
 
-class Color {
-    constructor(R, G, B, A) {
-        this.R = R;
-        this.G = G;
-        this.B = B;
-        this.A = A;
-    }
-}
 
 function RasterTriangle(context, p0, p1, p2, c1, c2, c3) {
     xmax = p0.x;
@@ -613,6 +645,70 @@ function RasterTriangle(context, p0, p1, p2, c1, c2, c3) {
 
 }
 
+function RasterTrianglebf(colorBuffer, depthBuffer,  p0, p1, p2, c1, c2, c3) {
+    xmax = p0.x;
+    xmin = p0.x;
+
+    if (xmax < p1.x) {
+        xmax = p1.x;
+    } else if (xmin > p1.x) {
+        xmin = p1.x;
+    }
+
+    if (xmax < p2.x) {
+        xmax = p2.x;
+    } else if (xmin > p2.x) {
+        xmin = p2.x;
+    }
+
+    ymax = p0.y;
+    ymin = p0.y;
+    if (ymax < p1.y) {
+        ymax = p1.y;
+    } else if (ymin > p1.y) {
+        ymin = p1.y;
+    }
+
+    if (ymax < p2.y) {
+        ymax = p2.y;
+    } else if (ymin > p2.y) {
+        ymin = p2.y;
+    }
+
+    f12 = new ImplicitFunction(p1, p2);
+    f20 = new ImplicitFunction(p2, p0);
+    f01 = new ImplicitFunction(p0, p1);
+
+    falfa = f12.eval(p0.x, p0.y);
+    fbeta = f20.eval(p1.x, p1.y);
+    fgamma = f01.eval(p2.x, p2.y);
+    for (let y = Math.floor(ymin); y <= Math.ceil(ymax); y++) {
+        for (let x = Math.floor(xmin); x <= Math.ceil(xmax); x++) {
+            alfa = f12.eval(x, y)/falfa;
+            beta = f20.eval(x, y)/fbeta;
+            gamma = f01.eval(x, y)/fgamma;
+            if (alfa >= 0 && beta >= 0 && gamma >= 0) {
+                if ( (alfa >= 0 || falfa * f12.eval(-1, -1) > 0) &&
+                    (beta >= 0 || fbeta * f20.eval(-1, -1) > 0) &&
+                    (gamma >= 0 || fgamma * f01.eval(-1, -1) > 0) ) {
+                        z = alfa * p0.z + beta * p1.z + gamma * p2.z;
+                        ix = Math.floor(x);
+                        iy = Math.round(y);
+                        if (depthBuffer[ix][iy] < z) {
+                            depthBuffer[ix][iy] = z;
+                            r = Math.round(alfa * c1.R + beta * c2.R + gamma * c3.R);
+                            g = Math.round(alfa * c1.G + beta * c2.G + gamma * c3.G);
+                            b = Math.round(alfa * c1.B + beta * c2.B + gamma * c3.B);
+                            a = Math.round(alfa * c1.A + beta * c2.A + gamma * c3.A);
+                            colorBuffer[ix][iy] = new Color(r, g, b, a);
+                            //SetPixelAt(context, x, y, r, g, b, 255);
+                        }
+                    }
+            }
+        }
+    }
+}
+
 
 function DrawLine(context, x1w, y1w,  x2w, y2w, r=200, g=200, b=200, a=255, xmin=-1, xmax=1, ymin=-1, ymax=1, nx = 600, ny = 600) {
     let bkp = context.strokeStyle;
@@ -649,6 +745,15 @@ function SetPixelAtWorld(targetContext, xw, yw, r=0, g=0, b=0, a=255)
     targetContext.fillStyle = "rgba(" + r + "," + g + "," + b + "," + (a/255.0) + ")";
     targetContext.fillRect(XToScr(xw), YToScr(yw), 1, 1);
     targetContext.fillStyle = bkp;
+}
+
+function DrawMatrix(context, m) {
+    for (let i = 0; i < m.length; i++) {
+        for (let j = 0; j < m[i].length; j++) {
+            let c = m[i][j];
+            SetPixelAt(context, i, j, c.R, c.G, c.B, c.A);
+        }
+    }
 }
 
 function SetPixelAt(targetContext, xw, yw, r=0, g=0, b=0, a=255)
